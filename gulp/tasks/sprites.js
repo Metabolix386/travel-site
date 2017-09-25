@@ -21,20 +21,20 @@ gulp.task('beginClean', function(){
 });
 
 gulp.task('createSprite', ['beginClean'], function(){
-  return gulp.src('./app/assets/images/icons/**/*.svg')
+  return gulp.src('./app/assets/images/icons/*.svg')
   .pipe(svgSprite(config))
   .pipe(gulp.dest('./app/temp/sprite/'));
 });
 
 gulp.task('copySpriteGraphic', ['createSprite'], function(){
   return gulp.src('.app/temp/sprite/css/**/*.svg')
-  .pipe(gulp.dest('./app/assets/images/sprites'));
+  .pipe(gulp.dest('./app/assets/images/sprites/'));
 });
 
 gulp.task(`copySpriteCSS`, ['createSprite', 'copySpriteGraphic'], function(){
   return gulp.src('./app/temp/sprite/css/*.css')
   .pipe(rename('_sprite.css'))
-  .pipe(gulp.dest('./app/assets/styles/modules'));
+  .pipe(gulp.dest('./app/assets/styles/modules/'));
 });
 
 gulp.task('endClean', ['createSprite', 'copySpriteCSS', 'copySpriteGraphic'], function(){
