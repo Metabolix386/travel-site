@@ -1,11 +1,19 @@
 var gulp = require('gulp'),
 svgSprite = require('gulp-svg-sprite'),
 rename = require('gulp-rename'),
-del = require('del');
+del = require('del'),
+svg2png = require('gulp-svg2png');
 
 var config = {
   mode: {
     css: {
+      variables: {
+        replaceSvgWithPng: function(){
+          return function(sprite, render){
+            return render(sprite).split('.svg').join('.png');
+          }
+        }
+      },
       sprite:'sprite.svg',
       render: {
         css:{
@@ -17,7 +25,7 @@ var config = {
 }
 
 gulp.task('beginClean', function(){
-  return del(['./app/temp/sprite', './app/assets/images/sprites']);
+  //return del(['./app/temp/sprite', './app/assets/images/sprites']);
 });
 
 gulp.task('createSprite', ['beginClean'], function(){
@@ -26,19 +34,25 @@ gulp.task('createSprite', ['beginClean'], function(){
   .pipe(gulp.dest('./app/temp/sprite/'));
 });
 
-gulp.task('copySpriteGraphic', ['createSprite'], function(){
-  return gulp.src('.app/temp/sprite/css/**/*.svg')
-  .pipe(gulp.dest('./app/assets/images/sprites/'));
+gulp.task('createPngCopy', ['createSprite'], function(){
+  return gulp.src('./app/temp/sprite/css/*.svg')
+  .pipe(svg2png())
+  .pipe(gulp.dest('./app/temp/sprite/css'));
 });
 
-gulp.task(`copySpriteCSS`, ['createSprite', 'copySpriteGraphic'], function(){
+gulp.task('copySpriteGraphic', ['createPngCopy'], function(){
+  return gulp.src('.app/temp/sprite/css/**/*.{svg, png}')
+  .pipe(gulp.dest('./app/assets/images/sprites'));
+});
+
+gulp.task('copySpriteCSS', ['createSprite'], function(){
   return gulp.src('./app/temp/sprite/css/*.css')
   .pipe(rename('_sprite.css'))
   .pipe(gulp.dest('./app/assets/styles/modules/'));
 });
 
-gulp.task('endClean', ['createSprite', 'copySpriteCSS', 'copySpriteGraphic'], function(){
-  return del(`./app/temp/sprite`);
+gulp.task('endClean', ['copySpriteCSS', 'copySpriteGraphic'], function(){
+  //return del('./app/temp/sprite');
 });
 
-gulp.task('icons', ['beginClean', 'createSprite', 'copySpriteGraphic', 'copySpriteCSS', 'endClean']);
+gulp.task('icons', ['beginClean', 'createSprite', 'createPngCopy', 'copySpriteGraphic', 'copySpriteCSS', 'endClean']);
